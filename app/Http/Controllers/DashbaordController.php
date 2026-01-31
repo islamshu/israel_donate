@@ -55,7 +55,7 @@ class DashbaordController extends Controller
             ->latest()
             ->take(6)
             ->get();
-        return view('dashboard.index', compact('stats', 'latestBookings','unreadContactCount'));
+        return view('dashboard.index', compact('stats', 'latestBookings'));
     }
     public function setting()
     {
