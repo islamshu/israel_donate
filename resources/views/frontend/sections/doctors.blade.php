@@ -54,9 +54,11 @@
                         </p>
 
                         <div class="flex items-center justify-between">
+                            @if($doctor->price)
                             <span class="text-primary font-bold">
                                 {{ $doctor->price }} ر.ع
                             </span>
+                            @endif
 
                             <button
                                 class="select-consultant-btn bg-primary text-white px-4 py-2 rounded-full text-sm hover:bg-primary-dark transition"
