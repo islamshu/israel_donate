@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 class CheckoutController extends Controller
 {
     /**
-     * إنشاء الحجز + إنشاء جلسة ثواني
+     * إنشاء الحجز + الدفع (أو نجاح مباشر إن كان مجاني)
      */
     public function create(Request $request)
     {
@@ -25,7 +25,6 @@ class CheckoutController extends Controller
             Booking::where('status', 'pending')
                 ->where('created_at', '<', now()->subMinutes(10))
                 ->update(['status' => 'expired']);
-                
 
             /* =========================================
                Validation
@@ -89,23 +88,51 @@ class CheckoutController extends Controller
             $amountBaisa = (int) round(((float) $consultant->price) * 1000);
 
             /* =========================================
-               إنشاء الحجز
+               إذا الحجز مجاني → نجاح مباشر
+            ========================================= */
+            if ($amountBaisa <= 0) {
+
+                $booking = Booking::create([
+                    'order_id'        => now()->format('Ymd') . '-' . random_int(1000, 9999),
+                    'consultant_id'   => $consultant->id,
+                    'date'            => $date,
+                    'start_time'      => $start->format('H:i:s'),
+                    'end_time'        => $end->format('H:i:s'),
+                    'client_name'     => $data['client_name'],
+                    'client_phone'    => $data['client_phone'],
+                    'client_email'    => $data['client_email'] ?? null,
+                    'client_age'      => $data['client_age'] ?? null,
+                    'client_address'  => $data['client_address'] ?? null,
+                    'amount_baisa'    => 0,
+                    'currency'        => 'OMR',
+                    'status'          => 'paid',
+                    'paid_at'         => now(),
+                ]);
+
+                return response()->json([
+                    'redirect_url' => route('checkout.thawani.success', $booking->order_id),
+                    'free' => true
+                ]);
+            }
+
+            /* =========================================
+               إنشاء الحجز المدفوع (Pending)
             ========================================= */
             try {
                 $booking = Booking::create([
-                    'order_id'=> now()->format('Ymd') . '-' . random_int(1000, 9999),
-                    'consultant_id'  => $consultant->id,
-                    'date'           => $date,
-                    'start_time'     => $start->format('H:i:s'),
-                    'end_time'       => $end->format('H:i:s'),
-                    'client_name'    => $data['client_name'],
-                    'client_phone'   => $data['client_phone'],
-                    'client_email'   => $data['client_email'] ?? null,
-                    'client_age'     => $data['client_age'] ?? null,
-                    'client_address' => $data['client_address'] ?? null,
-                    'amount_baisa'   => $amountBaisa,
-                    'currency'       => 'OMR',
-                    'status'         => 'pending',
+                    'order_id'        => now()->format('Ymd') . '-' . random_int(1000, 9999),
+                    'consultant_id'   => $consultant->id,
+                    'date'            => $date,
+                    'start_time'      => $start->format('H:i:s'),
+                    'end_time'        => $end->format('H:i:s'),
+                    'client_name'     => $data['client_name'],
+                    'client_phone'    => $data['client_phone'],
+                    'client_email'    => $data['client_email'] ?? null,
+                    'client_age'      => $data['client_age'] ?? null,
+                    'client_address'  => $data['client_address'] ?? null,
+                    'amount_baisa'    => $amountBaisa,
+                    'currency'        => 'OMR',
+                    'status'          => 'pending',
                 ]);
             } catch (QueryException $e) {
                 if ($e->getCode() === '23000') {
@@ -117,7 +144,7 @@ class CheckoutController extends Controller
             }
 
             /* =========================================
-               إنشاء جلسة ثواني
+               إنشاء جلسة Thawani
             ========================================= */
             $payload = [
                 'client_reference_id' => (string) $booking->id,
@@ -129,7 +156,7 @@ class CheckoutController extends Controller
                         'unit_amount' => $amountBaisa,
                     ]
                 ],
-                'success_url' => route('checkout.thawani.success',$booking->order_id),
+                'success_url' => route('checkout.thawani.success', $booking->order_id),
                 'cancel_url'  => route('checkout.thawani.cancel',  $booking->order_id),
             ];
 
@@ -167,49 +194,68 @@ class CheckoutController extends Controller
             report($e);
             return response()->json([
                 'message' => 'حدث خطأ غير متوقع',
-                'error'=>$e->getMessage()
+                'error'   => $e->getMessage()
             ], 500);
         }
     }
 
+    /* =========================================
+       Success
+    ========================================= */
     public function success($id)
     {
-        $booking = Booking::where('order_id',$id)->first();
-        $booking->update(['status' => 'paid', 'paid_at' => now()]);
+        $booking = Booking::where('order_id', $id)->firstOrFail();
+
+        if ($booking->status !== 'paid') {
+            $booking->update([
+                'status'  => 'paid',
+                'paid_at'=> now()
+            ]);
+        }
+
         return view('frontend.checkout.success', compact('booking'));
     }
 
+    /* =========================================
+       Cancel
+    ========================================= */
     public function cancel($id)
     {
-        $booking = Booking::where('order_id',$id)->first();
+        $booking = Booking::where('order_id', $id)->firstOrFail();
+
         if ($booking->status === 'pending') {
             $booking->update(['status' => 'canceled']);
         }
+
         return view('frontend.checkout.cancel', compact('booking'));
     }
+
+    /* =========================================
+       Check Slot (AJAX)
+    ========================================= */
     public function checkSlot(Request $request)
-{
-    $request->validate([
-        'consultant_id' => 'required|exists:consultants,id',
-        'date'          => 'required|date',
-        'time'          => 'required'
-    ]);
-    Booking::where('status', 'pending')
-                ->where('created_at', '<', now()->subMinutes(10))
-                ->update(['status' => 'expired']);
+    {
+        $request->validate([
+            'consultant_id' => 'required|exists:consultants,id',
+            'date'          => 'required|date',
+            'time'          => 'required'
+        ]);
 
-    $date  = Carbon::parse($request->date)->toDateString();
-    $time  = $request->time . ':00';
+        Booking::where('status', 'pending')
+            ->where('created_at', '<', now()->subMinutes(10))
+            ->update(['status' => 'expired']);
 
-    $exists = Booking::where('consultant_id', $request->consultant_id)
-        ->whereDate('date', $date)
-        ->where('start_time', $time)
-        ->whereIn('status', ['paid', 'pending'])
-        ->exists();
+        $date = Carbon::parse($request->date)->toDateString();
+        $time = $request->time . ':00';
 
-    return response()->json([
-        'available' => !$exists
-    ]);
-}
+        $exists = Booking::where('consultant_id', $request->consultant_id)
+            ->whereDate('date', $date)
+            ->where('start_time', $time)
+            ->whereIn('status', ['paid', 'pending'])
+            ->exists();
 
+        return response()->json([
+            'available' => !$exists
+        ]);
+    }
 }
