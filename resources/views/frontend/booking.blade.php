@@ -306,9 +306,11 @@
                                     <div class="text-sm text-gray-500">
                                         {{ $c->title }}
                                     </div>
+                                    @if($c->price)
                                     <div class="text-indigo-600 font-semibold mt-1">
                                         {{ $c->price }} ر.ع
                                     </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
