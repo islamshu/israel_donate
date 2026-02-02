@@ -25,9 +25,7 @@
         <h1 class="text-lg md:text-xl font-extrabold gradient-text">
             {{ get_general_value('website_name') }}
         </h1>
-        <p class="text-sm text-gray-500">
-            استشارات نفسية وأسرية متكاملة
-        </p>
+     
     </div>
 
 </div>
