@@ -54,7 +54,7 @@
                         </p>
 
                         <div class="flex items-center justify-between">
-                            @if($doctor->price)
+                            @if($doctor->price > 0)
                             <span class="text-primary font-bold">
                                 {{ $doctor->price }} ر.ع
                             </span>
