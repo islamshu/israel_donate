@@ -48,14 +48,11 @@
 
                         <div class="flex items-center justify-between">
 
-                            @if($service->price)
+                            @if($service->price > 0)
                                 <span class="text-primary font-bold">
                                     {{ number_format($service->price) }} ر.ع
                                 </span>
-                            @else
-                                <span class="text-gray-400 text-sm">
-                                    السعر حسب الحالة
-                                </span>
+                            
                             @endif
 
                             <a

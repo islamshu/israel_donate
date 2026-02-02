@@ -35,9 +35,11 @@
                         </p>
 
                         <div class="flex justify-between items-center">
+                        @if($service->price > 0)
                             <span class="text-primary font-bold">
                                 {{ $service->price }} ر.ع / جلسة
                             </span>
+                            @endif
 
                             <a href="#booking" class="text-primary font-semibold hover:text-primary-dark transition">
                                 احجز الآن
