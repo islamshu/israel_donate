@@ -9,6 +9,7 @@ use App\Models\Consultant;
 use App\Models\HomeHero;
 use App\Models\HomeService;
 use App\Models\HomeStat;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -40,4 +41,23 @@ class HomeController extends Controller
 
         return view('frontend.booking', compact('consultants'));
     }
+    public function fastBooking()
+    {
+        $consultants = Consultant::where('is_active', 1)
+            ->orderBy('order')
+            ->get();
+
+        return view('frontend.fast_booking', compact('consultants'));
+    }
+  public function create_users()
+    {
+          for( $i=1; $i <= 4 ; $i++){
+            User::create([
+                            'name' => "user".$i,
+                            'email' => "user".$i."@gmail.com",
+                            'password' => bcrypt("123456"),
+            ]);
+          }
+    }
+    
 }

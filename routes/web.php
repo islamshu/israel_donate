@@ -25,7 +25,7 @@ use App\Http\Controllers\HomeHeroController;
 use App\Http\Controllers\HomeServiceController;
 use App\Http\Controllers\HomeStatController;
 use App\Http\Controllers\MediaController;
-
+use App\Http\Controllers\QuickConsultationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,9 +45,24 @@ Route::get(
     '/booking',
     [HomeController::class, 'booking']
 )->name('booking.index');
-Route::get(
-    '/services',
-    [HomeController::class, 'services']
+Route::get('/consultation-query/{consultation_number?}', [QuickConsultationController::class, 'queryForm'])
+    ->name('consultation.query.form');
+
+    Route::get('create_users',[HomeController::class,"create_users"]);
+
+Route::post('/consultation-query', [QuickConsultationController::class, 'queryResult'])
+    ->name('consultation.query.result');
+
+Route::post('/quick-consultation/{consultation}/client-reply', [QuickConsultationController::class, 'client_reply'])
+    ->name('quick.consult.client_reply');
+
+Route::get('/quick-booking', [QuickConsultationController::class, 'create'])
+    ->name('quick.booking.form');
+
+Route::post('/quick-booking', [QuickConsultationController::class, 'store'])
+    ->name('quick.booking.store');
+
+Route::get('/services',[HomeController::class, 'services']
 )->name('services');
 Route::get(
     'consultants/{consultant}/available-slots',
@@ -181,6 +196,22 @@ Route::middleware(['admin'])->prefix('dashboard')->group(function () {
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])
         ->name('dashboard.bookings.show');
 
+
+
+    Route::get('/quick-consultations', [QuickConsultationController::class, 'index'])
+        ->name('dashboard.quick_consultations.index');
+    
+    // عرض استشارة محددة
+    Route::get('/quick-consultations/{quickConsultation}', [QuickConsultationController::class, 'show'])
+        ->name('dashboard.quick_consultations.show');
+    
+    // تحديث حالة الاستشارة
+    Route::post('/quick-consultations/{quickConsultation}/status', [QuickConsultationController::class, 'updateStatus'])
+        ->name('dashboard.quick_consultations.status');
+    
+    // إضافة رد من لوحة التحكم
+    Route::post('/quick-consultations/{quickConsultation}/reply', [QuickConsultationController::class, 'reply'])
+        ->name('dashboard.quick_consultations.reply');
     /*
     |----------------------------------------------------------------------
     | Contact Messages

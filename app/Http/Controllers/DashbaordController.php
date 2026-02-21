@@ -22,41 +22,57 @@ class DashbaordController extends Controller
 {
 
 
-    public function dashboard()
-    {
-        // ===== Booking Stats (استعلام واحد) =====
-        $counts = Booking::selectRaw("
-            COUNT(*) as total,
-            SUM(status = 'pending')  as pending,
-            SUM(status = 'paid')     as paid,
-            SUM(status = 'canceled') as canceled,
-            SUM(status = 'failed')   as failed,
-            SUM(status = 'expired')  as expired
-        ")->first();
+   public function dashboard()
+{
+    $user = auth()->user();
 
-        // ===== Revenue =====
-        $totalRevenue = Booking::where('status', 'paid')
-            ->sum('amount_baisa');
+    // ===== Base Query (حسب نوع المستخدم) =====
+    $bookingQuery = Booking::query();
 
-        // ===== Stats Array =====
-        $stats = [
-            'total'       => $counts->total,
-            'pending'     => $counts->pending,
-            'paid'        => $counts->paid,
-            'canceled'    => $counts->canceled,
-            'failed'      => $counts->failed,
-            'expired'     => $counts->expired,
-            'consultants' => Consultant::count(),
-            'revenue'     => $totalRevenue / 1000,
-        ];
+    if ($user->hasRole('consultant')) {
+        $consultantId = $user->consultant?->id;
 
-        // ===== Latest Bookings =====
-        $latestBookings = Booking::with('consultant')
-            ->latest()
-            ->take(6)
-            ->get();
-        return view('dashboard.index', compact('stats', 'latestBookings'));
+        if ($consultantId) {
+            $bookingQuery->where('consultant_id', $consultantId);
+        }
     }
+
+    // ===== Booking Stats (استعلام واحد) =====
+    $counts = (clone $bookingQuery)->selectRaw("
+        COUNT(*) as total,
+        SUM(status = 'pending')  as pending,
+        SUM(status = 'paid')     as paid,
+        SUM(status = 'canceled') as canceled,
+        SUM(status = 'failed')   as failed,
+        SUM(status = 'expired')  as expired
+    ")->first();
+
+    // ===== Revenue =====
+    $totalRevenue = (clone $bookingQuery)
+        ->where('status', 'paid')
+        ->sum('amount_baisa');
+
+    // ===== Stats Array =====
+    $stats = [
+        'total'       => $counts->total ?? 0,
+        'pending'     => $counts->pending ?? 0,
+        'paid'        => $counts->paid ?? 0,
+        'canceled'    => $counts->canceled ?? 0,
+        'failed'      => $counts->failed ?? 0,
+        'expired'     => $counts->expired ?? 0,
+        'consultants' => $user->hasRole('consultant') ? 1 : Consultant::count(),
+        'revenue'     => $totalRevenue / 1000,
+    ];
+
+    // ===== Latest Bookings =====
+    $latestBookings = (clone $bookingQuery)
+        ->with('consultant')
+        ->latest()
+        ->take(6)
+        ->get();
+
+    return view('dashboard.index', compact('stats', 'latestBookings'));
+}
     public function setting()
     {
         return view('dashboard.setting');

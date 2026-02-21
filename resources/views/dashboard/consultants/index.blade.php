@@ -1,50 +1,50 @@
 @extends('layouts.master')
 @section('title', 'المستشارون')
 @section('style')
-<style>
-/* Toggle Switch */
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 46px;
-    height: 24px;
-}
+    <style>
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 46px;
+            height: 24px;
+        }
 
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
-.slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background-color: #dc3545;
-    transition: .3s;
-    border-radius: 30px;
-}
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #dc3545;
+            transition: .3s;
+            border-radius: 30px;
+        }
 
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #fff;
-    transition: .3s;
-    border-radius: 50%;
-}
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #fff;
+            transition: .3s;
+            border-radius: 50%;
+        }
 
-input:checked + .slider {
-    background-color: #28a745;
-}
+        input:checked+.slider {
+            background-color: #28a745;
+        }
 
-input:checked + .slider:before {
-    transform: translateX(22px);
-}
-</style>
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -78,7 +78,9 @@ input:checked + .slider:before {
                                 <th>التقييم</th>
                                 <th>الخبرة</th>
                                 <th>السعر</th>
-                                <th>الحالة</th>
+                                @if (!auth()->user()->hasRole('consultant'))
+                                    <th>الحالة</th>
+                                @endif
                                 <th>التحكم</th>
                             </tr>
                         </thead>
@@ -110,24 +112,25 @@ input:checked + .slider:before {
                                     <td>{{ $c->years_experience }} سنة</td>
 
                                     <td>{{ $c->price }} ر.ع</td>
-
-                                    <td class="text-center">
-                                        <label class="switch" title="تفعيل / تعطيل المستشار">
-                                            <input type="checkbox"
-                                                   {{ $c->is_active ? 'checked' : '' }}
-                                                   onchange="toggleStatus({{ $c->id }}, this)">
-                                            <span class="slider"></span>
-                                        </label>
-                                    </td>
-                                    
+                                    @if (!auth()->user()->hasRole('consultant'))
+                                        <td class="text-center">
+                                            <label class="switch" title="تفعيل / تعطيل المستشار">
+                                                <input type="checkbox" {{ $c->is_active ? 'checked' : '' }}
+                                                    onchange="toggleStatus({{ $c->id }}, this)">
+                                                <span class="slider"></span>
+                                            </label>
+                                        </td>
+                                    @endif
 
                                     <td>
-                                        <a href="{{ route('dashboard.consultants.edit', $c) }}"
-                                            class="btn btn-sm btn-info">تعديل</a>
-                                            <a href="{{ route('dashboard.consultants.availability.edit', $c) }}"
+                                        @if (!auth()->user()->hasRole('consultant'))
+                                            <a href="{{ route('dashboard.consultants.edit', $c) }}"
+                                                class="btn btn-sm btn-info">تعديل</a>
+                                        @endif
+                                        <a href="{{ route('dashboard.consultants.availability.edit', $c) }}"
                                             class="btn btn-outline-secondary">
                                             الأوقات
-                                         </a>
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -140,27 +143,27 @@ input:checked + .slider:before {
     </div>
 @endsection
 @section('script')
-<script>
-function toggleStatus(id, el) {
+    <script>
+        function toggleStatus(id, el) {
 
-    fetch("{{ url('dashboard/consultants/toggle') }}/" + id, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
+            fetch("{{ url('dashboard/consultants/toggle') }}/" + id, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.success) {
+                        el.checked = !el.checked;
+                        alert('حدث خطأ أثناء التحديث');
+                    }
+                })
+                .catch(() => {
+                    el.checked = !el.checked;
+                    alert('فشل الاتصال بالخادم');
+                });
         }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.success) {
-            el.checked = !el.checked;
-            alert('حدث خطأ أثناء التحديث');
-        }
-    })
-    .catch(() => {
-        el.checked = !el.checked;
-        alert('فشل الاتصال بالخادم');
-    });
-}
-</script>
+    </script>
 @endsection

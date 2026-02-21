@@ -106,7 +106,7 @@
                 <tbody>
                 @foreach($bookings as $booking)
                     <tr>
-                        <td>{{ $booking->id }}</td>
+                        <td>{{ $loop->iteration }}</td>
                         <td>{{ $booking->consultant->name }}</td>
                         <td>{{ $booking->client_name }}</td>
                         <td>{{ $booking->date->format('Y-m-d') }}</td>
