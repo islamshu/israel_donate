@@ -196,6 +196,7 @@ class QuickConsultationController extends Controller
         }
 \Illuminate\Support\Facades\Log::info('استدعاء Event QuickConsultationCreated');
 event(new QuickConsultationCreated($consultation));
+\Illuminate\Support\Facades\Log::info('استدعاء Event QuickConsultationCreated تم بنجاح');
         return response()->json([
             'success' => true,
             'consultation_number' => $consultation->consultation_number
