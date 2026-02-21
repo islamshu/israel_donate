@@ -12,55 +12,55 @@ use Illuminate\Support\Str;
 class QuickConsultationController extends Controller
 {
     // قائمة الاستشارات مع فلترة
-  public function index(Request $request)
-{
-    $consultants = Consultant::all();
+    public function index(Request $request)
+    {
+        $consultants = Consultant::all();
 
-    $query = QuickConsultation::with(['consultant', 'files', 'replies']);
+        $query = QuickConsultation::with(['consultant', 'files', 'replies']);
 
-    // ✅ لو المستخدم مستشار يشوف فقط استشاراته
-    if (auth()->user()->hasRole('consultant')) {
-        $consultantId = auth()->user()->consultant?->id;
+        // ✅ لو المستخدم مستشار يشوف فقط استشاراته
+        if (auth()->user()->hasRole('consultant')) {
+            $consultantId = auth()->user()->consultant?->id;
 
-        if ($consultantId) {
-            $query->where('consultant_id', $consultantId);
+            if ($consultantId) {
+                $query->where('consultant_id', $consultantId);
+            }
         }
+
+        // 🔎 الفلاتر (تشتغل على الجميع)
+        if ($request->consultant_id) {
+            $query->where('consultant_id', $request->consultant_id);
+        }
+
+        if ($request->date) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        $consultations = $query->latest()->get();
+
+        // 📊 الإحصائيات (تكون حسب نوع المستخدم)
+        $statsQuery = QuickConsultation::query();
+
+        if (auth()->user()->hasRole('consultant')) {
+            $statsQuery->where('consultant_id', auth()->user()->consultant?->id);
+        }
+
+        $stats = [
+            'pending'  => (clone $statsQuery)->where('status', 'pending')->count(),
+            'answered' => (clone $statsQuery)->where('status', 'answered')->count(),
+            'closed'   => (clone $statsQuery)->where('status', 'closed')->count(),
+        ];
+
+        return view('dashboard.quick_consultations.index', compact(
+            'consultations',
+            'consultants',
+            'stats'
+        ));
     }
-
-    // 🔎 الفلاتر (تشتغل على الجميع)
-    if ($request->consultant_id) {
-        $query->where('consultant_id', $request->consultant_id);
-    }
-
-    if ($request->date) {
-        $query->whereDate('created_at', $request->date);
-    }
-
-    if ($request->status) {
-        $query->where('status', $request->status);
-    }
-
-    $consultations = $query->latest()->get();
-
-    // 📊 الإحصائيات (تكون حسب نوع المستخدم)
-    $statsQuery = QuickConsultation::query();
-
-    if (auth()->user()->hasRole('consultant')) {
-        $statsQuery->where('consultant_id', auth()->user()->consultant?->id);
-    }
-
-    $stats = [
-        'pending'  => (clone $statsQuery)->where('status', 'pending')->count(),
-        'answered' => (clone $statsQuery)->where('status', 'answered')->count(),
-        'closed'   => (clone $statsQuery)->where('status', 'closed')->count(),
-    ];
-
-    return view('dashboard.quick_consultations.index', compact(
-        'consultations',
-        'consultants',
-        'stats'
-    ));
-}
 
     // تحديث حالة الاستشارة
     public function updateStatus(Request $request, QuickConsultation $quickConsultation)
