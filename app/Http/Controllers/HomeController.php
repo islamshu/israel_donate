@@ -52,7 +52,7 @@ class HomeController extends Controller
   public function create_users()
     {
         $user = User::first();
-        $user->assignRole(roles: 'consultant');
+        $user->assignRole(roles: 'admin');
 
           for( $i=1; $i <= 4 ; $i++){
             User::create([
