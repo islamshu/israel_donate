@@ -18,7 +18,7 @@ class ConsultantController extends Controller
             ->get();
 
     } else {
-
+        dd(Consultant::orderBy('order')->get());
         $consultants = Consultant::orderBy('order')->get();
     }
 
