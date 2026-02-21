@@ -11,6 +11,8 @@ class SendQuickConsultationEmails
 {
     public function handle($event)
     {
+            \Illuminate\Support\Facades\Log::info('Listener SendQuickConsultationEmails تم استدعاؤه');
+
         $consultation = $event->consultation;
 
         try {
