@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\QuickConsultationCreated;
 use App\Models\Consultant;
 use Illuminate\Http\Request;
 use App\Models\QuickConsultation;
@@ -193,6 +194,7 @@ class QuickConsultationController extends Controller
                 ]);
             }
         }
+        event(new QuickConsultationCreated($consultation));
         return response()->json([
             'success' => true,
             'consultation_number' => $consultation->consultation_number
