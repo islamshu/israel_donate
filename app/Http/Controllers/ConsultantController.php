@@ -43,7 +43,7 @@ class ConsultantController extends Controller
                 'password' => bcrypt($data['password']),
             ]);
 
-            $user->assignRole('consultant');
+            $user->assignRole(roles: 'consultant');
 
             // ترتيب تلقائي
             $order = Consultant::max('order') + 1;
