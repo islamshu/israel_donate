@@ -19,7 +19,6 @@ class ConsultantController extends Controller
 
     } else {
         dd(Consultant::orderBy('order')->get());
-        $consultants = Consultant::orderBy('order')->get();
     }
 
     return view('dashboard.consultants.index', compact('consultants'));
