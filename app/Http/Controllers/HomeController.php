@@ -51,16 +51,16 @@ class HomeController extends Controller
     }
   public function create_users()
     {
-        $user = User::first();
-        $user->assignRole(roles: 'admin');
+        // $user = User::first();
+        // $user->assignRole(roles: 'admin');
 
-          for( $i=1; $i <= 4 ; $i++){
-            User::create([
-                            'name' => "user".$i,
-                            'email' => "user".$i."@gmail.com",
-                            'password' => bcrypt("123456"),
-            ]);
-          }
+        //   for( $i=1; $i <= 4 ; $i++){
+        //     User::create([
+        //                     'name' => "user".$i,
+        //                     'email' => "user".$i."@gmail.com",
+        //                     'password' => bcrypt("123456"),
+        //     ]);
+        //   }
     }
     
 }
