@@ -1,26 +1,24 @@
 <?php
-
 namespace App\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\QuickConsultationClientMail;
 use App\Mail\QuickConsultationConsultantMail;
 
-class SendQuickConsultationEmails implements ShouldQueue
+class SendQuickConsultationEmails
 {
     public function handle($event)
     {
         $consultation = $event->consultation;
 
-        // 📩 للعميل
+        // 📩 للعميل مباشرة
         Mail::to($consultation->client_email)
-            ->queue(new QuickConsultationClientMail($consultation));
+            ->send(new QuickConsultationClientMail($consultation));
 
-        // 📩 للمستشار
+        // 📩 للمستشار مباشرة إذا البريد موجود
         if ($consultation->consultant?->email) {
             Mail::to($consultation->consultant->email)
-                ->queue(new QuickConsultationConsultantMail($consultation));
+                ->send(new QuickConsultationConsultantMail($consultation));
         }
     }
 }
