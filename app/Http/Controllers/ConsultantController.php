@@ -136,7 +136,7 @@ class ConsultantController extends Controller
             'price' => 'required|numeric',
             'image' => 'nullable|string',
 
-            'email' => 'required|email|unique:users,email,' . $userId,
+            'email' => 'required',
             'password' => $request->isMethod('post')
                 ? 'required|min:6'
                 : 'nullable|min:6',
