@@ -22,20 +22,22 @@ class SendQuickConsultationEmails
 
             Log::info("تم إرسال إيميل الاستشارة للعميل: {$consultation->client_email}");
 
+            
+
         } catch (\Exception $e) {
             Log::error("فشل إرسال إيميل للعميل ({$consultation->client_email}): " . $e->getMessage());
         }
 
         try {
             // 📩 للمستشار إذا البريد موجود
-            if ($consultation->consultant?->email) {
-                Mail::to($consultation->consultant->email)
+            if ($consultation->consultant->user->email) {
+                Mail::to($consultation->consultant->user->email)
                     ->send(new QuickConsultationConsultantMail($consultation));
 
-                Log::info("تم إرسال إيميل الاستشارة للمستشار: {$consultation->consultant->email}");
+                Log::info("تم إرسال إيميل الاستشارة للمستشار: {$consultation->consultant->user->email}");
             }
         } catch (\Exception $e) {
-            Log::error("فشل إرسال إيميل للمستشار ({$consultation->consultant->email}): " . $e->getMessage());
+            Log::error("فشل إرسال إيميل للمستشار ({$consultation->consultant->user->email}): " . $e->getMessage());
         }
     }
 }
