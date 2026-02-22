@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Events\QuickConsultationCreated;
+use App\Mail\ClientReplyConsultationtMail;
+use App\Mail\ConsultReplyConsultationtMail;
 use App\Models\Consultant;
 use Illuminate\Http\Request;
 use App\Models\QuickConsultation;
 use App\Models\QuickConsultationFile;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class QuickConsultationController extends Controller
@@ -115,6 +118,11 @@ class QuickConsultationController extends Controller
                 'file_path' => $filePath,
             ]);
         }
+        Mail::to($quickConsultation->client_email)
+            ->send(new ClientReplyConsultationtMail($quickConsultation));
+
+
+        $quickConsultation->update(['status' => 'answered']);
 
 
         return back()->with('success', 'تم إرسال الرد بنجاح.');
@@ -141,6 +149,17 @@ class QuickConsultationController extends Controller
                 'file_path' => $filePath,
             ]);
         }
+        if (auth()->user()->hasRole('consultant')) {
+            Mail::to($consultation->client_email)
+                ->send(new ClientReplyConsultationtMail($consultation));
+        }else{
+        Mail::to($consultation->consultant->user->email)
+            ->send(new ConsultReplyConsultationtMail($consultation));
+        }
+        $consultation->update(['status' => 'pending']);
+
+
+
 
         // إعادة التوجيه إلى نفس الصفحة مع رقم الاستشارة
         return redirect()->route('consultation.query.form', ['consultation_number' => $consultation->consultation_number])
@@ -194,9 +213,9 @@ class QuickConsultationController extends Controller
                 ]);
             }
         }
-\Illuminate\Support\Facades\Log::info('استدعاء Event QuickConsultationCreated');
-event(new QuickConsultationCreated($consultation));
-\Illuminate\Support\Facades\Log::info('استدعاء Event QuickConsultationCreated تم بنجاح');
+        \Illuminate\Support\Facades\Log::info('استدعاء Event QuickConsultationCreated');
+        event(new QuickConsultationCreated($consultation));
+        \Illuminate\Support\Facades\Log::info('استدعاء Event QuickConsultationCreated تم بنجاح');
         return response()->json([
             'success' => true,
             'consultation_number' => $consultation->consultation_number
