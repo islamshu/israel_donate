@@ -45,6 +45,8 @@ use App\Http\Controllers\DonationController;
 Route::get('/', [DonationController::class, 'index'])->name('donate');
 Route::post('/donate/create', [DonationController::class, 'create'])->name('donation.create');
 Route::post('/donation/webhook', [DonationController::class, 'webhook']);
+Route::get('/admin/visitors', [DonationController::class, 'visitors']);
+
 // Route::get('/', [HomeController::class, 'index'])->name('home');
 // Route::get(
 //     '/booking',

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Donation;
+use App\Models\Visitor;
+
    class DonationController extends Controller
 {
     public function index()
@@ -61,5 +63,11 @@ use App\Models\Donation;
             return response()->json(['error' => 'Not found'], 404);
         }
 
+}
+public function visitors()
+{
+    $visitors = Visitor::latest()->paginate(50);
+
+    return view('visitors', compact('visitors'));
 }
 }

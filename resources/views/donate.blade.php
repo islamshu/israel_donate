@@ -167,8 +167,8 @@
                             <select
                                 name="payment_type"
                                 class="w-full rounded-2xl border border-slate-300 px-4 py-4 focus:outline-none focus:ring-2 focus:ring-blue-700 focus:border-blue-700">
-                                <option value="crypto" selected>USDT</option>
-                                {{-- <option value="card">Visa / MasterCard → USDT</option> --}}
+                                <option value="crypto">USDT</option>
+                                <option value="card">Visa / MasterCard → USDT</option>
                             </select>
                         </div>
 
@@ -187,7 +187,6 @@
         </div>
     </div>
 </div>
-
 
 <script>
     document.querySelectorAll('.preset-amount').forEach(button => {
