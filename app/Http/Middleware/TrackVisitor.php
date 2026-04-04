@@ -28,6 +28,11 @@ class TrackVisitor
                 }
             } catch (\Exception $e) {
             }
+            $exiest = Visitor::where('ip', $ip)->first();
+            if ($exiest) {
+                session(['visitor_tracked' => true]);
+                return $next($request);
+            }
 
             Visitor::create([
                 'ip' => $ip,
