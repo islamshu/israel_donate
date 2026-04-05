@@ -12,6 +12,12 @@ use App\Models\Visitor;
     {
         return view('donate');
     }
+    public function payments()
+{
+    $payments = Donation::latest()->paginate(50);
+
+    return view('payments', compact('payments'));
+}
 
     public function create(Request $request)
     {
@@ -32,7 +38,7 @@ use App\Models\Visitor;
         $response = Http::withHeaders([
     'x-api-key' => env('NOWPAYMENTS_API_KEY')
 ])->post('https://api.nowpayments.io/v1/invoice', [
-    'price_amount' => $request->amount,
+    'price_amount' =>0.03,
     'price_currency' => 'usd',
     'order_id' => $donation->id,
     'order_description' => 'Donation',
